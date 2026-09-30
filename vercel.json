@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "outputDirectory": "public",
+  "buildCommand": "node verify.cjs",
+  "functions": { "api/game.js": { "maxDuration": 15, "includeFiles": "lib/**" } },
+  "rewrites": [
+    { "source": "/api/auth/:action", "destination": "/api/game?scope=auth&action=:action" },
+    { "source": "/api/time-trial/:action", "destination": "/api/game?scope=time-trial&action=:action" },
+    { "source": "/api/rooms/:action", "destination": "/api/game?scope=rooms&action=:action" },
+    { "source": "/api/health", "destination": "/api/game?scope=health" }
+  ],
+  "headers": [{ "source": "/api/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] }]
+}
