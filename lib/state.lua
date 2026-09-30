@@ -91,14 +91,14 @@ local q=r.players[user.id];q.seen=now
 if p.op=='rooms/start' then
   if r.host~=user.id then return errorReply(403,'방장만 시작할 수 있습니다.') end
   local count=0;for _ in pairs(r.players) do count=count+1 end;if r.phase~='waiting' or count<2 then return errorReply(409,'대기실에서 2명 이상 모이면 시작할 수 있습니다.') end
-  r.phase='loading';r.changed=now;r.notice='';r.startAt=nil;for _,v in pairs(r.players) do v.ready=false;v.pose=nil;v.progress=0;v.finish=nil end
+  r.phase='loading';r.changed=now;r.notice='';r.startAt=nil;for _,v in pairs(r.players) do v.ready=false;v.pose=nil;v.motion=nil;v.poseAt=nil;v.progress=0;v.finish=nil end
 elseif p.op=='rooms/ready' then if r.phase=='loading' then q.ready=true end
 elseif p.op=='rooms/sync' and (r.phase=='loading' or r.phase=='race') and not q.finish and a.pose then
-  q.pose=a.pose
+  q.pose=a.pose;q.motion=a.motion or {math.sin(a.pose[4])*a.pose[5],math.cos(a.pose[4])*a.pose[5]};q.poseAt=now
   if r.phase=='race' and now>=r.startAt and a.progress then q.progress=math.max(q.progress,math.min(3,math.max(0,a.progress))) end
   if a.finished and q.progress>=2.7 and r.startAt and now-r.startAt>=10000 then q.finish=now-r.startAt;q.progress=3 end
 end
 sweep()
-local players={};for _,v in pairs(r.players) do table.insert(players,{id=v.id,nickname=v.nickname,team=v.team,slot=v.slot,ready=v.ready,pose=v.pose or cjson.null,progress=v.progress,finish=v.finish or cjson.null}) end
+local players={};for _,v in pairs(r.players) do table.insert(players,{id=v.id,nickname=v.nickname,team=v.team,slot=v.slot,ready=v.ready,pose=v.pose or cjson.null,motion=v.motion or cjson.null,poseAt=v.poseAt or cjson.null,progress=v.progress,finish=v.finish or cjson.null}) end
 table.sort(players,function(x,y) return x.slot<y.slot end)
 return reply(200,{id=r.id,name=r.name,code=r.host==user.id and r.code or nil,host=r.host,you=user.id,circuit=r.circuit,phase=r.phase,startAt=r.startAt,serverNow=now,notice=r.notice or '',players=players})
